@@ -35,6 +35,7 @@ public class EncryAndDecry {
 	 */
 	public static void main(String[] args) throws Exception {
 		String absolutePath =System.getProperty("user.dir");
+		//为避免操作系统不同导致目录结构不一样，此处使用拼接绝对路径。
 		System.out.println(absolutePath);
 		Reader inStream = new InputStreamReader(new FileInputStream(absolutePath+"/src/main/resources/secret.properties"));
 
@@ -53,11 +54,9 @@ public class EncryAndDecry {
 //		saveToFile(secResult, secPath);
 
 		//解密
-//		String secContent = getFileContent(secPath);
-//		System.out.println(secContent);
-//		String ming_content = decrypt(secContent, salt, pswd);
-//		System.out.println("ming_content--->" + ming_content);
-//		restoreSecContentToFile(ming_content,mingPath);
+		String secContent = getFileContent(secPath);
+		String ming_content = decrypt(secContent, salt, pswd);
+		restoreSecContentToFile(ming_content,mingPath);
 	}
 	
 	private static void restoreSecContentToFile(String content,String path) throws Exception {
