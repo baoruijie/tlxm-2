@@ -35,8 +35,11 @@ public class EncryAndDecry {
 	 */
 	public static void main(String[] args) throws Exception {
 		String absolutePath =System.getProperty("user.dir");
+		String userName = System.getProperty("user.name");//user.home
+
 		//为避免操作系统不同导致目录结构不一样，此处使用拼接绝对路径。
 		System.out.println(absolutePath);
+
 		Reader inStream = new InputStreamReader(new FileInputStream(absolutePath+"/src/main/resources/secret.properties"));
 
 		Properties prop = new Properties();
@@ -48,14 +51,15 @@ public class EncryAndDecry {
 		String mingPath = prop.getProperty("path_ming");
 
 		//加密
-//		String accountContent = getFileContent(path);
-//		String secResult = encrypt(accountContent,salt,pswd);
-//		System.out.println("加密后密文:" + secResult);
-//		saveToFile(secResult, secPath);
+		String accountContent = getFileContent(path);
+		String secResult = encrypt(accountContent,salt,pswd);
+		System.out.println("加密后密文:" + secResult);
+		saveToFile(secResult, secPath);
 
 		//解密
 		String secContent = getFileContent(secPath);
 		String ming_content = decrypt(secContent, salt, pswd);
+		System.out.println(ming_content);
 		restoreSecContentToFile(ming_content,mingPath);
 	}
 	
