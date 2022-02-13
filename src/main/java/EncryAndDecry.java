@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.security.Key;
@@ -38,8 +39,8 @@ public class EncryAndDecry {
 		String userName = System.getProperty("user.name");//user.home
 
 		//为避免操作系统不同导致目录结构不一样，此处使用拼接绝对路径。
-		System.out.println(absolutePath);
-
+		//System.out.println(absolutePath);
+		String osName = System.getProperty ("os.name");
 		Reader inStream = new InputStreamReader(new FileInputStream(absolutePath+"/src/main/resources/secret.properties"));
 
 		Properties prop = new Properties();
@@ -49,13 +50,24 @@ public class EncryAndDecry {
 		String path = prop.getProperty("path");
 		String secPath = prop.getProperty("path_sec");
 		String mingPath = prop.getProperty("path_ming");
-
-		//加密
-		String accountContent = getFileContent(path);
+		
+		String osPath = "";
+		if(osName.startsWith("Windows")){
+			osPath = "windowsSourcePath";
+		}else{
+			osPath = "macSourcePath";
+		}
+		String sourcePath = prop.getProperty(osPath);
+		String encoding = GetEncoding(new File(sourcePath));
+		System.out.println(encoding);
+		
+//加密
+		/*=========================================================================*/
+		String accountContent = getFileContent(sourcePath,encoding);
 		String secResult = encrypt(accountContent,salt,pswd);
 		System.out.println("加密后密文:" + secResult);
-		saveToFile(secResult, secPath);
-
+//		saveToFile(secResult, secPath);
+		/*=========================================================================*/
 		//解密
 		String secContent = getFileContent(secPath);
 		String ming_content = decrypt(secContent, salt, pswd);
@@ -104,6 +116,7 @@ public class EncryAndDecry {
 		return new String(result);
 	}
 	
+	//字符流
 	public static String getFileContent(String path) throws IOException{
 		File file = new File(path);
 		BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -115,4 +128,105 @@ public class EncryAndDecry {
 		reader.close();
 		return result.trim();
 	}
+	//字节流
+	public static String getFileContent(String path,String encoding)throws IOException{
+		FileInputStream is = new FileInputStream(path);
+//		FileInputStream is = new FileInputStream("C:/天龙小蜜/游戏账号/默认文件.txt");
+//		FileInputStream is = new FileInputStream("H:/JAVA/Tools/eclipse-kepler/workspace/tlxm/TLXM/游戏账号/默认文件.txt");
+		int len = 0;
+		String result = "";
+		byte[]bys = new byte[1024];
+		while((len = is.read(bys))!=-1){
+			result += new String(bys,0,len,encoding);
+		}
+		is.close();
+		return result;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String GetEncoding(File file)
+    {
+        String charset = "GBK";
+        byte[] first3Bytes = new byte[3];
+        try {
+            boolean checked = false; 
+            InputStream is = new FileInputStream(file);
+            int read = is.read(first3Bytes, 0, 3);
+ 
+            if (read == -1)
+                return charset;
+            if (first3Bytes[0] == (byte) 0xFF && first3Bytes[1] == (byte) 0xFE) {
+                charset = "UTF-16LE";
+                checked = true;
+            } else if (first3Bytes[0] == (byte) 0xFE
+                    && first3Bytes[1] == (byte) 0xFF) {
+                charset = "UTF-16BE";
+                checked = true;
+            } else if (first3Bytes[0] == (byte) 0xEF
+                    && first3Bytes[1] == (byte) 0xBB
+                    && first3Bytes[2] == (byte) 0xBF) {
+                charset = "UTF-8";
+                checked = true;
+            }else if (first3Bytes[0] == (byte) 0xA
+                    && first3Bytes[1] == (byte) 0x5B
+                    && first3Bytes[2] == (byte) 0x30) {
+                charset = "UTF-8";
+                checked = true;
+            }else if (first3Bytes[0] == (byte) 0xD
+                    && first3Bytes[1] == (byte) 0xA
+                    && first3Bytes[2] == (byte) 0x5B) {
+                charset = "GBK";
+                checked = true;
+            }else if (first3Bytes[0] == (byte) 0x5B
+                    && first3Bytes[1] == (byte) 0x54
+                    && first3Bytes[2] == (byte) 0x49) {
+                charset = "windows-1251";
+                checked = true;
+            }
+            //bis.reset();
+            InputStream istmp = new FileInputStream(file);
+            if (!checked) {
+                int loc = 0;
+                while ((read = istmp.read()) != -1) {
+                    loc++;
+                    if (read >= 0xF0)
+                        break;
+                    if (0x80 <= read && read <= 0xBF)
+                        break;
+                    if (0xC0 <= read && read <= 0xDF) {
+                        read = istmp.read();
+                        if (0x80 <= read && read <= 0xBF)
+                            continue;
+                        else
+                            break;
+                    } else if (0xE0 <= read && read <= 0xEF) {
+                        read = istmp.read();
+                        if (0x80 <= read && read <= 0xBF) {
+                            read = istmp.read();
+                            if (0x80 <= read && read <= 0xBF) {
+                                charset = "UTF-8";
+                                break;
+                            } else
+                                break;
+                        } else
+                            break;
+                    }
+                }
+            }
+            is.close();
+            istmp.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return charset; 
+    }
 }
