@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Properties;
 
 import javax.crypto.Cipher;
@@ -47,14 +48,17 @@ public class EncryAndDecry {
 		prop.load(inStream);
 		String salt = prop.getProperty("salt");
 		String pswd = prop.getProperty("password");
-		String path = prop.getProperty("path");
+//		String path = prop.getProperty("path");
 		String secPath = prop.getProperty("path_sec");
 		String mingPath = prop.getProperty("path_ming");
-		
+
+		String localDateTime =LocalDateTime.now().toString();
+		secPath = secPath + localDateTime+".txt";
+		mingPath = mingPath + localDateTime+".txt";
 		String osPath = "";
 		if(osName.startsWith("Windows")){
 			osPath = "windowsSourcePath";
-		}else{
+		}else{//Mac os X
 			osPath = "macSourcePath";
 		}
 		String sourcePath = prop.getProperty(osPath);
@@ -66,7 +70,7 @@ public class EncryAndDecry {
 		String accountContent = getFileContent(sourcePath,encoding);
 		String secResult = encrypt(accountContent,salt,pswd);
 		System.out.println("加密后密文:" + secResult);
-//		saveToFile(secResult, secPath);
+		saveToFile(secResult, secPath);
 		/*=========================================================================*/
 		//解密
 		String secContent = getFileContent(secPath);
